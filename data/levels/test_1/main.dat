@@ -1,0 +1,16 @@
+{
+  "player": "Biker(self.game)",
+
+  "layers": [
+    [["Tile", 0, 0, "data/sprites/floor tiles.png", [0, 0, 16, 16], "None"],
+      ["Tile", 16, 0, "data/sprites/floor tiles.png", [0, 0, 16, 16], "None"],
+      ["Tile", 16, 16, "data/sprites/floor tiles.png", [0, 0, 16, 16], "None"],
+      ["Tile", 128, 0, "data/sprites/floor tiles.png", [32, 128, 16, 16], "None"],
+      ["Tile", 32, 16, "data/sprites/floor tiles.png", [0, 0, 16, 16], "None"],
+      ["Tile", 32, 16, "data/sprites/characters/tony.png", [0, 0, 64, 64], [54, 185, 21]]
+    ],
+    [],
+    [["Tile", 0, 16, "data/sprites/floor tiles.png", [16, 32, 16, 16], "None"]
+    ]
+  ]
+}
