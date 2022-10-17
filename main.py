@@ -14,7 +14,7 @@ class Game():
     clock = pg.time.Clock()
     play = True
     frame = 0
-    modifier = 5
+    modifier = 4
 
     def __init__(self):
         self.LEVEL = Level(self, 'data/levels/test_1/main.dat')
