@@ -14,6 +14,7 @@ class Game():
     clock = pg.time.Clock()
     play = True
     frame = 0
+    modifier = 5
 
     def __init__(self):
         self.LEVEL = Level(self, 'data/levels/test_1/main.dat')
@@ -22,10 +23,13 @@ class Game():
         while self.play:
             self.frame = (self.frame + 1) % 64
             keys = pygame.key.get_pressed()
-
             for event in pg.event.get():
                 if event.type == pg.QUIT:
                     self.play = False
+                if  keys[pg.K_q]:
+                    self.modifier += 1
+                if keys[pg.K_e]:
+                    self.modifier -= 1
 
             self.LEVEL.update(keys)
             self.window.fill(hsv2rgb(*bgcolor))

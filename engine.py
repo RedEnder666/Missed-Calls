@@ -3,7 +3,6 @@ from spritesheets import *
 import os, sys, time
 from math import atan2, degrees, pi
 colorkey = pg.SRCALPHA
-modifier = 4
 
 def get_angle_between(pos1, pos2):
     dx, dy = pos1[0] - pos2[0], pos1[1] - pos2[1]
@@ -55,7 +54,7 @@ class Entity:
 
 
 class Player(Entity):
-    def __init__(self, game, sprites, state='idle', anwait=0.1, legs_state='idle', direct=0, friction=0.75):
+    def __init__(self, game, sprites, state='idle', anwait=0.1, legs_state='idle', direct=0, friction=0.7):
         super().__init__(game, sprites, state, anwait, legs_state, direct, friction)
         self.legs_state='idle'
 
@@ -64,13 +63,13 @@ class Player(Entity):
         self.direct = get_angle_between(self.game.center, pg.mouse.get_pos())
         speedm = 0.7
         if keys[pg.K_a]:
-            self.speed[0] -= modifier * speedm
+            self.speed[0] -= self.game.modifier / speedm
         if keys[pg.K_d]:
-            self.speed[0] += modifier * speedm
+            self.speed[0] += self.game.modifier / speedm
         if keys[pg.K_w]:
-            self.speed[1] -= modifier * speedm
+            self.speed[1] -= self.game.modifier / speedm
         if keys[pg.K_s]:
-            self.speed[1] += modifier * speedm
+            self.speed[1] += self.game.modifier / speedm
         super().update(keys)
 
 
@@ -104,7 +103,7 @@ class Biker(Player):
     def draw(self):
         sprite = self.sprites[self.state][self.anim]
         sprite_scale = sprite.get_rect()[2:4]
-        sprite = pg.transform.scale(sprite, (sprite_scale[0]*modifier, sprite_scale[1]*modifier))
+        sprite = pg.transform.scale(sprite, (sprite_scale[0]*self.game.modifier, sprite_scale[1]*self.game.modifier))
         sprite = rot_center(sprite, self.direct, self.game.center[0], self.game.center[1])
         self.game.window.blit(*sprite)
 
@@ -155,14 +154,19 @@ class Tile():
     def __init__(self, game, x, y, sprite):
         self.game = game
         self.pos = [x, y]
+        self.spritest = sprite
         sprite_scale = sprite.get_rect()[2:4]
-        sprite = pg.transform.scale(sprite, (sprite_scale[0]*modifier, sprite_scale[1]*modifier))
+        sprite = pg.transform.scale(sprite,
+                                    (sprite_scale[0] * self.game.modifier, sprite_scale[1] * self.game.modifier))
         self.sprite = sprite
 
     def update(self, keys):
         pass
 
     def draw(self):
-        pos = self.pos[0] * modifier - self.game.LEVEL.player.pos[0], self.pos[1] * modifier - self.game.LEVEL.player.pos[1]
+        sprite_scale = self.spritest.get_rect()[2:4]
+        self.sprite = pg.transform.scale(self.spritest,
+                                    (sprite_scale[0] * self.game.modifier, sprite_scale[1] * self.game.modifier))
+        pos = (self.pos[0]  * self.game.modifier - self.game.LEVEL.player.pos[0]), (self.pos[1] * self.game.modifier - self.game.LEVEL.player.pos[1])
         self.game.window.blit(self.sprite, pos)
 
