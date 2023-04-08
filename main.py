@@ -1,4 +1,3 @@
-import pygame as pg
 from engine import *
 import colorsys
 def hsv2rgb(h,s,v):
@@ -26,10 +25,12 @@ class Game():
             for event in pg.event.get():
                 if event.type == pg.QUIT:
                     self.play = False
-                if  keys[pg.K_q]:
-                    self.modifier += 1
-                if keys[pg.K_e]:
-                    self.modifier -= 1
+                elif event.type == pg.MOUSEBUTTONDOWN:
+                    if event.button == 4:  # прокрутка колеса мыши вверх
+                        self.modifier *= 1.2
+                    elif event.button == 5:  # прокрутка колеса мыши вниз
+                        self.modifier /= 1.2
+                self.modifier = max(min(self.modifier, 7.0), 2.5)
 
             self.LEVEL.update(keys)
             self.window.fill(hsv2rgb(*bgcolor))

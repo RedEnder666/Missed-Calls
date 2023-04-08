@@ -57,19 +57,20 @@ class Player(Entity):
     def __init__(self, game, sprites, state='idle', anwait=0.1, legs_state='idle', direct=0, friction=0.7):
         super().__init__(game, sprites, state, anwait, legs_state, direct, friction)
         self.legs_state='idle'
+        self.speed_mod = 1.45
 
 
     def update(self, keys):
         self.direct = get_angle_between(self.game.center, pg.mouse.get_pos())
-        speedm = 0.7
+        speedm = self.speed_mod
         if keys[pg.K_a]:
-            self.speed[0] -= self.game.modifier / speedm
+            self.speed[0] -= speedm
         if keys[pg.K_d]:
-            self.speed[0] += self.game.modifier / speedm
+            self.speed[0] += speedm
         if keys[pg.K_w]:
-            self.speed[1] -= self.game.modifier / speedm
+            self.speed[1] -= speedm
         if keys[pg.K_s]:
-            self.speed[1] += self.game.modifier / speedm
+            self.speed[1] += speedm
         super().update(keys)
 
 
@@ -92,7 +93,7 @@ class Biker(Player):
 
 
     def update(self, keys):
-        if (abs(self.speed[0])+abs(self.speed[1]))//2 > 0.5:
+        if (abs(self.speed[0]*self.speed_mod)+abs(self.speed[1]*self.speed_mod))//2 > 0.1:
             self.state='walking_meatcleaver'
         else:
             self.sprites['idle'] = self.sprites[self.state][self.anim],
@@ -103,7 +104,7 @@ class Biker(Player):
     def draw(self):
         sprite = self.sprites[self.state][self.anim]
         sprite_scale = sprite.get_rect()[2:4]
-        sprite = pg.transform.scale(sprite, (sprite_scale[0]*self.game.modifier, sprite_scale[1]*self.game.modifier))
+        sprite = pg.transform.scale(sprite, (int(sprite_scale[0]*self.game.modifier), int(sprite_scale[1]*self.game.modifier)))
         sprite = rot_center(sprite, self.direct, self.game.center[0], self.game.center[1])
         self.game.window.blit(*sprite)
 
@@ -144,21 +145,28 @@ class Level():
             for layer in range(len(json['layers'])):
                 for item in range(len(json['layers'][layer])):
                     text = json['layers'][layer][item]
-                    self.layers[layer].append(eval(f'{text[0]}(self.game, {text[1]}, {text[2]}, spritesheet("{text[3]}").image_at({text[4]}, {text[5]}))'))
+                    if text[0] == 'Tile':
+                        if len(text) > 6:
+                            self.layers[layer].append(eval(f'Tile(self.game, {text[1]}, {text[2]}, spritesheet("{text[3]}").image_at({text[4]}, {text[5]}), {text[6]})'))
+                        else:
+                            self.layers[layer].append(eval(
+                                f'Tile(self.game, {text[1]}, {text[2]}, spritesheet("{text[3]}").image_at({text[4]}, {text[5]}))'))
             self.layers[1].append(self.player)
             self.entities.append(self.player)
             print(self.entities, self.layers, self.player)
 
 
 class Tile():
-    def __init__(self, game, x, y, sprite):
+    def __init__(self, game, x, y, sprite, transparency=255):
         self.game = game
         self.pos = [x, y]
         self.spritest = sprite
+        self.t = transparency
         sprite_scale = sprite.get_rect()[2:4]
         sprite = pg.transform.scale(sprite,
                                     (sprite_scale[0] * self.game.modifier, sprite_scale[1] * self.game.modifier))
         self.sprite = sprite
+        self.sprite.set_alpha(self.t)
 
     def update(self, keys):
         pass
@@ -166,7 +174,14 @@ class Tile():
     def draw(self):
         sprite_scale = self.spritest.get_rect()[2:4]
         self.sprite = pg.transform.scale(self.spritest,
-                                    (sprite_scale[0] * self.game.modifier, sprite_scale[1] * self.game.modifier))
-        pos = (self.pos[0]  * self.game.modifier - self.game.LEVEL.player.pos[0]), (self.pos[1] * self.game.modifier - self.game.LEVEL.player.pos[1])
+                                         (int(sprite_scale[0] * self.game.modifier), int(sprite_scale[1] * self.game.modifier)))
+        self.sprite.set_alpha(self.t)
+        pos = ((self.pos[0] - self.game.LEVEL.player.pos[0]) * self.game.modifier + self.game.SCREEN[0] // 2,
+               (self.pos[1] - self.game.LEVEL.player.pos[1]) * self.game.modifier + self.game.SCREEN[1] // 2)
         self.game.window.blit(self.sprite, pos)
+
+
+
+
+
 
