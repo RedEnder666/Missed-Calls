@@ -82,6 +82,7 @@ class Cursor(Entity):
         self.pos = list(pygame.mouse.get_pos())
         super(Cursor, self).__init__(game, self.sprites, self.state, anwait=self.anwait)
 
+
     def update(self, keys):
         self.pos = list(pygame.mouse.get_pos())
         super().update(keys)
