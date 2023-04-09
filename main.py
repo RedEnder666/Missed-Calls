@@ -6,6 +6,7 @@ def hsv2rgb(h,s,v):
 
 class Game():
     pg.init()
+    pygame.mouse.set_visible(False)
     SCREEN = WIDTH, HEIGHT = 1500, 700
     FPS = 60
     center = WIDTH // 2, HEIGHT // 2
@@ -14,10 +15,8 @@ class Game():
     play = True
     frame = 0
     modifier = 4
-
     def __init__(self):
         self.LEVEL = Level(self, 'data/levels/test_1/main.dat')
-
         bgcolor = [0.3, 0.5, 0.3]
         while self.play:
             self.frame = (self.frame + 1) % 64
