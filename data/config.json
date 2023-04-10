@@ -1,0 +1,6 @@
+{
+  "comment": 'MODE can be FULLSCREEN, SCALED, RESIZABLE, NOFRAME',
+  "MODE": "SCALED",
+  "FPS": 60,
+  "RESOLUTION": (1850, 750),
+}

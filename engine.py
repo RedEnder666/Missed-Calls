@@ -1,6 +1,6 @@
 import pygame as pg
 from spritesheets import *
-import os, sys, time
+import os, sys, time, math
 from math import atan2, degrees, pi
 
 colorkey = pg.SRCALPHA
@@ -29,13 +29,22 @@ class Camera:
         self.game = game
         self.pos = pos
         self.target = target
+        self.modifier = 4
 
     def update(self):
+        for event in pg.event.get():
+            if event.type == pg.MOUSEBUTTONDOWN:
+                if event.button == 4:  # прокрутка колеса мыши вверх
+                    self.modifier *= 1.2
+                elif event.button == 5:  # прокрутка колеса мыши вниз
+                    self.modifier /= 1.2
         slowing_factor = 0.1
-        cursor_pos = self.game.LEVEL.cursor.pos[0] - self.game.SCREEN[0]/2, self.game.LEVEL.cursor.pos[1] - self.game.SCREEN[1]/2
-        print(cursor_pos)
-        self.pos = ((self.target.pos[0] - self.pos[0]) * slowing_factor + self.pos[0]) + cursor_pos[0] / self.game.SCREEN[0]*10, (
-                (self.target.pos[1] - self.pos[1]) * slowing_factor + (self.pos[1])) + cursor_pos[1] / self.game.SCREEN[1]*10
+        cursor_pos = self.game.LEVEL.cursor.pos[0] - self.game.SCREEN[0] / 2, \
+                     self.game.LEVEL.cursor.pos[1] - self.game.SCREEN[1] / 2
+        self.pos = ((self.target.pos[0] - self.pos[0]) * slowing_factor +
+                    self.pos[0]) + cursor_pos[0] / self.game.SCREEN[0] * 7, \
+                   ((self.target.pos[1] - self.pos[1]) * slowing_factor +
+                    self.pos[1]) + cursor_pos[1] / self.game.SCREEN[1] * 7
 
 
 class Entity:
@@ -70,31 +79,57 @@ class Entity:
 class Cursor(Entity):
     def __init__(self, game):
         self.game = game
-        self.anwait = 100
-        self.sprites = {'idle': spritesheet('data/sprites/UI/sprCursor.png').images_at([(0,0,11,11), (11, 0, 11, 11),
-                                                                            (22, 0, 11, 11), (33, 0, 11, 11),
-                                                                            (44, 0, 11, 11), (55, 0, 11, 11),
-                                                                            (66, 0, 11, 11), (77, 0, 11, 11),
-                                                                            (88, 0, 11, 11), (99, 0, 11, 11),
-                                                                            ])}
+        self.anwait = 70
+        image = spritesheet('data/sprites/UI/sprCursor.png')
+        self.sprites = {'idle': image.images_at([(0, 0, 11, 11),
+                                                 (11, 0, 11, 11),
+                                                 (55, 0, 11, 11),
+                                                 (22, 0, 11, 11),
+                                                 (22, 0, 11, 11),
+                                                 (55, 0, 11, 11),
+                                                 (99, 0, 11, 11),
+                                                 (0, 0, 11, 11),
+                                                 ]),
+                        'action': image.images_at([(0, 0, 11, 11),
+                                                   (22, 0, 11, 11),
+                                                   (33, 0, 11, 11),
+                                                   (44, 0, 11, 11),
+                                                   (55, 0, 11, 11),
+                                                   (66, 0, 11, 11),
+                                                   (77, 0, 11, 11),
+                                                   (88, 0, 11, 11),
+                                                   (99, 0, 11, 11),
+
+                                                   ])}
         self.state = 'idle'
         self.anim = 0
         self.pos = list(pygame.mouse.get_pos())
         super(Cursor, self).__init__(game, self.sprites, self.state, anwait=self.anwait)
 
-
     def update(self, keys):
+        '''
+        if self.game.LEVEL.loaded:
+            if self.game.LEVEL.player.attacking:
+                if self.state != 'action':
+                    self.anim = 0
+                self.state = 'action'
+            else:
+                if self.state != 'idle':
+                    self.anim = 0
+                self.state = 'idle'
+        '''
         self.pos = list(pygame.mouse.get_pos())
         super().update(keys)
 
     def draw(self):
-        sprite = self.sprites[self.state][self.anim]
-        sprite_scale = sprite.get_rect()[2:4]
-        sprite = pg.transform.scale(sprite, (
-            int(sprite_scale[0] * self.game.modifier), int(sprite_scale[1] * self.game.modifier)))
-        pos = (self.pos[0]), (self.pos[1])
-        sprite = rot_center(sprite, 0, *pos)
-        self.game.window.blit(*sprite)
+        if self.game.interface_enabled:
+            sprite = self.sprites[self.state][self.anim]
+            sprite_scale = sprite.get_rect()[2:4]
+            sprite = pg.transform.scale(sprite, (
+                int(sprite_scale[0] * self.game.modifier), int(sprite_scale[1] * self.game.modifier)))
+            pos = (self.pos[0]), (self.pos[1])
+            sprite = rot_center(sprite, 0, *pos)
+            self.game.window.blit(*sprite)
 
 
 class Player(Entity):
@@ -104,7 +139,9 @@ class Player(Entity):
         self.speed_mod = 0.8
 
     def update(self, keys):
-        self.direct = get_angle_between(self.game.center, pg.mouse.get_pos())
+        pos = [(self.pos[0] - self.game.camera.pos[0]) * self.game.modifier + self.game.SCREEN[0] // 2,
+               (self.pos[1] - self.game.camera.pos[1]) * self.game.modifier + self.game.SCREEN[1] // 2]
+        self.direct = get_angle_between(pos, self.game.LEVEL.cursor.pos)
         speedm = self.speed_mod
         if keys[pg.K_a]:
             self.speed[0] -= speedm
@@ -164,11 +201,88 @@ class Biker(Player):
         self.game.window.blit(*sprite)
 
 
+class Jacket(Player):
+    def __init__(self, game):
+        self.attacking = False
+        self.game = game
+        self.weapon = 'bat'
+        self.mask = 'tony'
+        self.state = 'idle'
+        jacket = spritesheet('data/sprites/characters/jacket.png')
+        self.sprites = {'idle': (jacket.image_at((834, 703, 27, 31), colorkey=(255, 135, 141)),),
+                        'richard': (jacket.image_at((1063, 163, 13, 13), colorkey=(255, 135, 141)),),
+                        'tony': (jacket.image_at((1081, 163, 13, 13), colorkey=(255, 135, 141)),),
+                        'walking_unarmed': jacket.images_at(((834, 703, 27, 31), (867, 704, 27, 31),
+                                                             (900, 703, 27, 31), (933, 703, 27, 31),
+                                                             (966, 703, 27, 31), (999, 703, 27, 31),
+                                                             (1032, 703, 27, 31), (1065, 703, 27, 31),
+                                                             ), colorkey=(255, 135, 141)),
+                        'walking_bat': jacket.images_at(((827, 1030, 27, 45), (860, 1031, 27, 45),
+                                                         (893, 1031, 27, 45), (926, 1031, 27, 45),
+                                                         (959, 1030, 27, 45), (992, 1029, 27, 45),
+                                                         (1025, 1029, 27, 45), (1058, 1029, 27, 45),
+                                                         ), colorkey=(255, 135, 141)),
+
+                        'attack_bat': jacket.images_at(((293, 493, 63, 45), (293, 539, 63, 47), (293, 587, 63, 50),
+                                                        (293, 638, 65, 50), (293, 688, 63, 49), (293, 738, 63, 48),
+                                                        (305, 787, 40, 48), (293, 836, 63, 48), (223, 688, 63, 46),
+                                                        (223, 688, 63, 46),
+                                                        ),
+                                                       colorkey=(255, 135, 141))
+                        }
+        self.headoffsets = {
+            'idle': ([0, 0],),
+            'walking_unarmed': ([0, 1], [0, 0], [0, 1],
+                                [0, 1], [0, 1], [0, 1],
+                                [0, 1], [0, 1]),
+            'walking_bat': ([0, -1], [0, 0], []),
+        }
+
+        super().__init__(game, self.sprites, state='idle', anwait=100)
+
+    def draw(self):
+        sprite = self.sprites[self.state][self.anim]
+        sprite_scale = sprite.get_rect()[2:4]
+        sprite = pg.transform.scale(sprite, (
+            int(sprite_scale[0] * self.game.modifier), int(sprite_scale[1] * self.game.modifier)))
+        pos = ((self.pos[0] - self.game.camera.pos[0]) * self.game.modifier + self.game.SCREEN[0] // 2,
+               (self.pos[1] - self.game.camera.pos[1]) * self.game.modifier + self.game.SCREEN[1] // 2)
+        sprite = rot_center(sprite, self.direct, *pos)
+        self.game.window.blit(*sprite)
+        '''sprite = self.sprites[self.mask][0]
+        sprite_scale = sprite.get_rect()[2:4]
+        sprite = pg.transform.flip(sprite, False, not (self.anim > (self.get_anim_len())/2))
+        sprite = pg.transform.scale(sprite, (
+            int(sprite_scale[0] * self.game.modifier), int(sprite_scale[1] * self.game.modifier)))
+        sprite = rot_center(sprite, self.direct, *pos)
+        self.game.window.blit(*sprite)
+'''
+
+    def update(self, keys):
+        self.game.modifier = min(max(self.game.modifier, 2), 10)
+        if pygame.mouse.get_pressed()[0] or self.attacking:
+            if self.state != 'attack_' + self.weapon:
+                self.anim = 0
+            self.state = 'attack_' + self.weapon
+            self.attacking = True
+            self.anwait = 60
+            if self.anim >= self.get_anim_len() - 1:
+                self.attacking = False
+                self.anwait = 100
+        elif (abs(self.speed[0] * self.speed_mod * 2) + abs(self.speed[1] * self.speed_mod * 2)) // 2 > 0:
+            self.state = 'walking_' + self.weapon
+        else:
+            self.sprites['idle'] = self.sprites['walking_' + self.weapon][0],
+            self.state = 'idle'
+        super().update(keys)
+
+
 class Level():
     def __init__(self, game, folder):
         self.game = game
         self.layers = [[], [], []]
         self.entities = []
+        self.loaded = False
         self.load_level(folder)
         self.cursor = Cursor(self.game)
 
@@ -195,13 +309,13 @@ class Level():
                 self.layers[layer].append(item)
 
     def load_level(self, folder):
-        with open(folder, 'r') as json:
-            json = json.read()
-            json = eval(json)
-            self.player = eval(json['player'])
-            for layer in range(len(json['layers'])):
-                for item in range(len(json['layers'][layer])):
-                    text = json['layers'][layer][item]
+        with open(folder, 'r') as levelfile:
+            levelfile = levelfile.read()
+            levelfile = eval(levelfile)
+            self.player = eval(levelfile['player'])
+            for layer in range(len(levelfile['layers'])):
+                for item in range(len(levelfile['layers'][layer])):
+                    text = levelfile['layers'][layer][item]
                     if text[0] == 'Tile':
                         if len(text) > 6:
                             self.layers[layer].append(eval(
@@ -210,7 +324,9 @@ class Level():
                             self.layers[layer].append(eval(
                                 f'Tile(self.game, {text[1]}, {text[2]}, spritesheet("{text[3]}").image_at({text[4]}, {text[5]}))'))
             self.layers[1].append(self.player)
+            print('x')
             self.entities.append(self.player)
+            self.loaded = True
             self.game.camera = Camera(self.game, self.player)  # define a camera
             print(self.entities, self.layers, self.player)
 
@@ -233,8 +349,8 @@ class Tile():
     def draw(self):
         sprite_scale = self.spritest.get_rect()[2:4]
         self.sprite = pg.transform.scale(self.spritest,
-                                         (int(sprite_scale[0] * self.game.modifier),
-                                          int(sprite_scale[1] * self.game.modifier)))
+                                         (math.ceil(sprite_scale[0] * self.game.modifier),
+                                          math.ceil(sprite_scale[1] * self.game.modifier)))
         self.sprite.set_alpha(self.t)
         pos = ((self.pos[0] - self.game.camera.pos[0]) * self.game.modifier + self.game.SCREEN[0] // 2,
                (self.pos[1] - self.game.camera.pos[1]) * self.game.modifier + self.game.SCREEN[1] // 2)
