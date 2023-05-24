@@ -122,7 +122,10 @@ class Cursor(Entity):
                 int(sprite_scale[0] * self.game.modifier), int(sprite_scale[1] * self.game.modifier)))
             pos = (self.pos[0]), (self.pos[1])
             sprite = rot_center(sprite, 0, *pos)
+            dbgtxt = pygame.font.Font(None, 20).render(f'state: {self.state}, pos: {self.pos}', True, (255, 255, 255))
+            self.game.window.blit(dbgtxt, (self.pos[0]-50, self.pos[1]-40))
             self.game.window.blit(*sprite)
+
 
 
 class Player(Entity):
@@ -305,6 +308,8 @@ class Level():
             self.player = eval(levelfile['player'])
             for layer in range(len(levelfile['layers'])):
                 for item in range(len(levelfile['layers'][layer])):
+                    if item != None:
+                        continue
                     text = levelfile['layers'][layer][item]
                     if text[0] == 'Tile':
                         if len(text) > 6:

@@ -62,6 +62,7 @@ class Game:
     play = True
     frame = 0
     modifier = 4
+    debug_mode = True
 
     def __init__(self):
         self.LEVEL = Level(self, 'data/levels/test_1/main.dat')
@@ -78,9 +79,11 @@ class Game:
                     self.play = False
                 elif event.type == pg.MOUSEBUTTONDOWN:
                     if event.button == 4:  # прокрутка колеса мыши вверх
-                        self.modifier *= 1.2
+                        if self.modifier < 5:
+                            self.modifier *= 1.2
                     elif event.button == 5:  # прокрутка колеса мыши вниз
-                        self.modifier /= 1.2
+                        if self.modifier > 2.5:
+                            self.modifier /= 1.2
                 elif event.type == pg.KEYDOWN:
                     if event.key == pg.K_ESCAPE:
                         self.menu_active = not self.menu_active
