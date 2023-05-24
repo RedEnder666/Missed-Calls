@@ -308,8 +308,6 @@ class Level():
             self.player = eval(levelfile['player'])
             for layer in range(len(levelfile['layers'])):
                 for item in range(len(levelfile['layers'][layer])):
-                    if item != None:
-                        continue
                     text = levelfile['layers'][layer][item]
                     if text[0] == 'Tile':
                         if len(text) > 6:

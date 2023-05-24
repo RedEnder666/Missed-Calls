@@ -31,7 +31,6 @@
 
       ],
     [],
-    [],
     [["Tile", 0, 0, "data/sprites/floor tiles.png", [0, 32, 16, 16], "None", 200],
         ["Tile", 16, 16, "data/sprites/floor tiles.png", [0, 32, 16, 16], "None", 200],
         ["Tile", 16, 0, "data/sprites/floor tiles.png", [0, 32, 16, 16], "None", 200],
