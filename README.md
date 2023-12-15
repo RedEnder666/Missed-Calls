@@ -10,5 +10,6 @@
 2. Tile layers and transparency are supported
 
 # TODO:
+1. Enemies or at least Dummies to beat
 2. UI
 3. COLLISION AND PATHFINDING(later)
