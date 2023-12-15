@@ -1,6 +1,4 @@
-# Hotline Miami clone
-
-Another shitty Hotline Miami clone.
+# Hotline Miami engine remastered clone
 
 ![image](https://user-images.githubusercontent.com/115835523/230936088-3e6d7b06-0601-426a-9e28-eb5a3c08021d.png)
 ![image](https://github.com/RedEnder666/Missed-Calls/assets/74973491/eeac28af-6cdb-411c-b851-6c5185447af8)
@@ -11,7 +9,6 @@ Another shitty Hotline Miami clone.
 1. Mouse scrolling zooms the game
 2. Tile layers and transparency are supported
 
-# NEED HELP WITH:
-1. Masks...
+# TODO:
 2. UI
 3. COLLISION AND PATHFINDING(later)
