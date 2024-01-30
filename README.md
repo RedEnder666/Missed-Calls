@@ -6,8 +6,8 @@
 
 
 # FEATURES
-1. Mouse scrolling zooms the game
-2. Tile layers and transparency are supported
+1. Mouse scrolling zooms the camera
+2. Tile layers and transparency supporting tiles
 
 # TODO:
 1. Enemies or at least Dummies to beat
